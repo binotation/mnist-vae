@@ -52,14 +52,19 @@ def check(net, X_ts):
     if not os.path.exists(img_path):
         os.makedirs(img_path)
 
-    img = X_ts[torch.randint(0, len(X_ts), (1,)).item()].reshape(28, 28)
-    plt.figure()
-    plt.imshow(img.cpu().detach().numpy())
+    sample_size = 10
+    r = torch.randint(0, len(X_ts) - sample_size, (1,)).item()
+    imgs = X_ts[r : r + sample_size].reshape(sample_size, 28, 28)
+
+    _, axs = plt.subplots(2, 5, constrained_layout=True)
+    for j, img in enumerate(imgs):
+        axs[j // 5, j % 5].imshow(img.cpu().detach().numpy())
     plt.savefig('img/original.png')
 
-    reconstructed = net(img.view(1, 784))
-    plt.figure()
-    plt.imshow(reconstructed.view(28, 28).cpu().detach().numpy())
+    _, axs = plt.subplots(2, 5, constrained_layout=True)
+    for j, img in enumerate(imgs):
+        reconstructed = net(img.view(1, 784))
+        axs[j // 5, j % 5].imshow(reconstructed.view(28, 28).cpu().detach().numpy())
     plt.savefig('img/reconstructed.png')
 
 def main():
