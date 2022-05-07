@@ -4,7 +4,7 @@ import torchvision.datasets as datasets
 import torch.optim as optim
 import torch.nn as nn
 import matplotlib.pyplot as plt
-from models import LinearAE
+from models import LinearAE, ConvAE
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -21,6 +21,7 @@ def get_data(device):
     return X_tr, X_ts
 
 def train(net,\
+        name,\
         X_tr,\
         epochs=13,\
         criterion=nn.MSELoss(),\
@@ -43,7 +44,7 @@ def train(net,\
     trained_path = __file__ + '/../../trained'
     if not os.path.exists(trained_path):
         os.makedirs(trained_path)
-    torch.save(net, f'{trained_path}/LinearAE_{loss:.0f}.pkl')
+    torch.save(net, f'{trained_path}/{name}_{loss:.0f}.pkl')
     return net
 
 def check(net, X_ts):
@@ -65,7 +66,15 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     X_tr, X_ts = get_data(device)
 
-    net = train(LinearAE(X_tr.shape[1], 72).to(device),\
+    # net = train(LinearAE(X_tr.shape[1], 72).to(device),\
+    #     'LinearAE',\
+    #     X_tr,\
+    #     20,\
+    #     nn.MSELoss(),\
+    #     lambda p: optim.Adam(p, 8e-4))
+
+    net = train(ConvAE(X_tr.shape[1], 48).to(device),\
+        'ConvAE',\
         X_tr,\
         20,\
         nn.MSELoss(),\
