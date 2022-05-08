@@ -36,14 +36,14 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     X_tr, X_ts, y_ts = get_data(device)
 
-    # net = train(LinearAE(X_tr.shape[1], 72).to(device),\
+    # train(LinearAE(X_tr.shape[1], 256, 72).to(device),\
     #     'LinearAE',\
     #     X_tr,\
     #     20,\
     #     nn.MSELoss(),\
     #     lambda p: optim.Adam(p, 8e-4))
 
-    train(ConvAE(X_tr.shape[1], 48).to(device),\
+    train(ConvAE(X_tr.shape[1], 256, 48).to(device),\
         'ConvAE',\
         X_tr,\
         20,\

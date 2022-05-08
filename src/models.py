@@ -3,11 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class LinearAE(nn.Module):
-    def __init__(self, in_size, hid_size):
+    def __init__(self, in_size, hid_size, latent_size):
         super(LinearAE, self).__init__()
         self.enc_in = nn.Linear(in_size, hid_size)
-        self.enc_out = nn.Linear(hid_size, hid_size)
-        self.dec_in = nn.Linear(hid_size, hid_size)
+        self.enc_out = nn.Linear(hid_size, latent_size)
+        self.dec_in = nn.Linear(latent_size, hid_size)
         self.dec_out = nn.Linear(hid_size, in_size)
 
     def forward(self, input):
@@ -19,12 +19,12 @@ class LinearAE(nn.Module):
         return x
 
 class ConvAE(nn.Module):
-    def __init__(self, in_size, hid_size):
+    def __init__(self, in_size, hid_size, latent_size):
         super(ConvAE, self).__init__()
         self.conv = nn.Conv2d(1, 32, 3, 1)
         self.enc_in = nn.Linear(5408, hid_size)
-        self.enc_out = nn.Linear(hid_size, hid_size)
-        self.dec_in = nn.Linear(hid_size, hid_size)
+        self.enc_out = nn.Linear(hid_size, latent_size)
+        self.dec_in = nn.Linear(latent_size, hid_size)
         self.dec_out = nn.Linear(hid_size, in_size)
 
     def forward(self, input):
