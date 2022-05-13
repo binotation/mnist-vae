@@ -2,7 +2,7 @@
 import sys
 sys.path.append(__file__ + '/../..')
 
-from helpers import get_cifar10
+from helpers import get_mnist, get_cifar10
 from model import ConvAE
 import torch
 import torch.nn as nn

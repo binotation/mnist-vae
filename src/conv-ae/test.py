@@ -2,7 +2,7 @@
 import sys
 sys.path.append(__file__ + '/../..')
 
-from helpers import create_dir, get_cifar10
+from helpers import create_dir, get_mnist, get_cifar10
 from test_ae import reconstruct, latent_space
 from model import ConvAE
 import torch

@@ -2,7 +2,7 @@
 import sys
 sys.path.append(__file__ + '/../..')
 
-from helpers import get_mnist
+from helpers import get_mnist, get_cifar10
 from model import LinearAE
 import torch
 import torch.nn as nn
@@ -11,8 +11,9 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 def train(device, X_tr, epochs=20):
+    shape = X_tr.shape
     loader = DataLoader(X_tr, batch_size=125, shuffle=True)
-    linear_ae = LinearAE().to(device)
+    linear_ae = LinearAE((shape[2], shape[3], shape[1])).to(device)
     optimizer = optim.Adam(linear_ae.parameters(), 1e-4)
     criterion = nn.MSELoss()
 
@@ -30,7 +31,7 @@ def train(device, X_tr, epochs=20):
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    X_tr, y_tr, X_ts, y_ts = get_mnist(device)
+    X_tr, y_tr, X_ts, y_ts = get_cifar10(device, root='g:/Personal/blob')
 
     linear_ae = train(device, X_tr)
 

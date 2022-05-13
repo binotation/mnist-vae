@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import os
 import torchvision.datasets as datasets
@@ -42,13 +43,13 @@ def get_mnist(device, root='~/.torchvision', download=False):
     # (60000, 28, 28)
     X_tr = (set_tr.data / 255).unsqueeze(1).to(device)
 
-    # (60000,)
+    # torch tensor (60000,)
     y_tr = set_tr.targets
 
     # (10000, 28, 28)
     X_ts = (set_ts.data / 255).unsqueeze(1).to(device)
 
-    # (10000,)
+    # torch tensor (10000,)
     y_ts = set_ts.targets
 
     return X_tr, y_tr, X_ts, y_ts
@@ -68,13 +69,13 @@ def get_cifar10(device, root='~/.torchvision', download=False):
     # (50000, 3, 32, 32)
     X_tr = torch.from_numpy(set_tr.data / 255).float().permute(0, 3, 1, 2).to(device)
 
-    # list (60000,)
-    y_tr = set_tr.targets
+    # np array (60000,)
+    y_tr = np.array(set_tr.targets)
 
     # (10000, 3, 32, 32)
     X_ts = torch.from_numpy(set_ts.data / 255).float().permute(0, 3, 1, 2).to(device)
 
-    # list (10000,)
-    y_ts = set_ts.targets
+    # np array (10000,)
+    y_ts = np.array(set_ts.targets)
 
     return X_tr, y_tr, X_ts, y_ts
