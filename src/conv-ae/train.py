@@ -21,7 +21,7 @@ def train(device, X_tr, epochs=20):
         for x in loader:
             optimizer.zero_grad()
             reconstructed = conv_ae(x)
-            loss = criterion(reconstructed, x)
+            loss = criterion(reconstructed, x.squeeze(1))
             loss.backward()
             optimizer.step()
         loop.set_postfix(loss=f'{loss:.5f}')
