@@ -9,11 +9,11 @@ def reconstruct(model, X_ts, img_path):
     r = torch.randint(0, len(X_ts) - sample_size, (1,)).item()
     sample = X_ts[r : r + sample_size]
 
-    reconstructed = model(sample)
+    reconstructed = model(sample).permute((0, 2, 3, 1))
 
     fig, axs = plt.subplots(2, 10, constrained_layout=True, figsize=(15, 5))
     fig.suptitle('Original (top row) vs Reconstructed')
-    for j, img in enumerate(sample.squeeze(1)):
+    for j, img in enumerate(sample.permute((0, 2, 3, 1))):
         axs[0, j].imshow(img.cpu().detach().numpy())
 
     for j, img in enumerate(reconstructed):
