@@ -117,6 +117,6 @@ def get_pokemon_grayscale(device):
         with Image.open(f'{imgs_folder}/{imgs_files[i]}') as img:
             imgs[i] = convert_tensor(img.convert('L'))
 
-    plt.imshow(imgs[torch.randint(0, 750, (1,)).item()].squeeze(0))
-    plt.savefig(f'{__file__}/../novel-vae/img/1.png')
+    # plt.imshow(imgs[torch.randint(0, 750, (1,)).item()].squeeze(0))
+    # plt.savefig(f'{__file__}/../novel-vae/img/1.png')
     return imgs.to(device)

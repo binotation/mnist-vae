@@ -6,16 +6,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.distributions.normal import Normal
-from helpers import get_convs_out_dim
 
 class VAE(nn.Module):
     '''Variational autoencoder. p_x is chosen as Bernoulli.'''
     def __init__(self, data_dim):
         super(VAE, self).__init__()
-        self._latent_size = 512
-        self._convs_out_dim = 512
-        self.inference_network = InferenceNetwork(data_dim, self._latent_size, np.prod(self._convs_out_dim))
-        self.generative_network = GenerativeNetwork(data_dim, self._latent_size, self._convs_out_dim)
+        self._latent_size = 2048
+        self.inference_network = InferenceNetwork(data_dim, self._latent_size)
+        self.generative_network = GenerativeNetwork(data_dim, self._latent_size)
 
     def forward(self, x):
         '''x: (batch, channels, H, W)
@@ -43,75 +41,27 @@ class VAE(nn.Module):
 class InferenceNetwork(nn.Module):
     '''Map x to parameters for the q(z|x) distribution. Convolutions are based on lenet5.'''
 
-    def __init__(self, data_dim, latent_size, convs_out_size):
+    def __init__(self, data_dim, latent_size=1024):
         '''data_dim: (H, W, channels)'''
         super(InferenceNetwork, self).__init__()
         self.data_dim = data_dim
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels=data_dim[2], out_channels=64, kernel_size=4, stride=2, padding=3), # 50x50
-            nn.BatchNorm2d(64),
-            nn.MaxPool2d(kernel_size=2, stride=2, padding=1),
+            nn.Conv2d(in_channels=data_dim[2], out_channels=32, kernel_size=2, stride=2, padding=0), # 32x48x48
+            nn.MaxPool2d(kernel_size=2, stride=2), # 32x25x25
         )
-        self.conv2 = nn.Sequential( # 26x26
-            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=2, stride=2, padding=0), # 64x12x12
         )
-        self.conv3 = nn.Sequential( # 13x13
-            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(128),
-        )
-        self.conv4 = nn.Sequential( # 7x7
-            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-        )
-        self.conv5 = nn.Sequential( # 4x4
-            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
-            nn.AvgPool2d(4), # 1x1
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=2, stride=2, padding=0), # 128x6x6
             nn.Flatten()
         )
         self.loc_fc = nn.Sequential(
-            nn.Linear(convs_out_size, latent_size),
+            nn.Linear(128 * 6 * 6, latent_size),
         )
         self.scale_fc = nn.Sequential(
-            nn.Linear(convs_out_size, latent_size),
+            nn.Linear(128 * 6 * 6, latent_size),
             nn.Softplus(),
         )
 
@@ -121,8 +71,6 @@ class InferenceNetwork(nn.Module):
         out = self.conv1(x)
         out = self.conv2(out)
         out = self.conv3(out)
-        out = self.conv4(out)
-        out = self.conv5(out)
         # split non-batch dim in half
         loc = self.loc_fc(out)
         scale = self.scale_fc(out)
@@ -131,54 +79,24 @@ class InferenceNetwork(nn.Module):
 class GenerativeNetwork(nn.Module):
     '''Map latent variables to parameters for the p(x|z) distribution.'''
 
-    def __init__(self, data_dim, latent_size, convs_out_dim):
+    def __init__(self, data_dim, latent_size=1024, convs_out_dim=(6, 6, 128)):
         super(GenerativeNetwork, self).__init__()
         self.data_dim = data_dim
         self._convs_out_dim = convs_out_dim
 
-        self.generative1 = nn.Linear(latent_size, 512) # Reshape after
+        self.generative1 = nn.Linear(latent_size, np.prod(convs_out_dim)) # Reshape after
         self.generative2 = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=512, out_channels=512, kernel_size=4, stride=3, padding=0),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
+            nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=2, stride=2, padding=0),
+            # nn.BatchNorm2d(64),
 
-            nn.ConvTranspose2d(in_channels=512, out_channels=512, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
+            nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=2, stride=2, padding=0),
+            # nn.BatchNorm2d(32),
 
-            nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(128),
+            nn.ConvTranspose2d(in_channels=32, out_channels=32, kernel_size=2, stride=2, padding=0),
+            # nn.BatchNorm2d(32),
 
-            nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
+            nn.ConvTranspose2d(in_channels=32, out_channels=data_dim[2], kernel_size=2, stride=2, padding=0),
 
-            nn.ConvTranspose2d(in_channels=64, out_channels=64, kernel_size=2, stride=2, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-
-            nn.ConvTranspose2d(in_channels=64, out_channels=data_dim[2], kernel_size=4, stride=2, padding=3),
-            nn.BatchNorm2d(data_dim[2]),
             nn.Sigmoid() # Sigmoid here works better than Tanh
         )
 
@@ -187,13 +105,18 @@ class GenerativeNetwork(nn.Module):
         Returns: (batch, channels, H, W)
         '''
         out = self.generative1(z_sample)
-        p_x_logits = self.generative2(out.view(-1, 512, 1, 1))
+        h, w, channels = self._convs_out_dim
+        p_x_logits = self.generative2(out.view(-1, channels, h, w))
         return p_x_logits
 
 if __name__ == '__main__':
-    inference = InferenceNetwork((96, 96, 3), 128, 512)
-    vae = VAE((96, 96, 3))
-    t = torch.ones((102, 3, 96, 96))
+    device = torch.device('cuda')
+    vae = VAE((96, 96, 1)).to(device)
+    inference = InferenceNetwork((96, 96, 1)).to(device)
+    generative = GenerativeNetwork((96, 96, 1)).to(device)
+
+    t = torch.ones((102, 1, 96, 96), device=device)
     # loc, _ = inference(t)
+    # p_x_logits = generative(loc)
     p_z, q_z, p_x_logits = vae(t)
     print(p_x_logits.shape)
