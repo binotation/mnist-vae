@@ -2,6 +2,9 @@ import numpy as np
 import torch
 import os
 import torchvision.datasets as datasets
+from torchvision import transforms
+from PIL import Image
+import matplotlib.pyplot as plt
 
 def create_dir(path):
     '''Create a directory at path if it does not exist.'''
@@ -79,3 +82,22 @@ def get_cifar10(device, root='~/.torchvision', download=False):
     y_ts = np.array(set_ts.targets)
 
     return X_tr, y_tr, X_ts, y_ts
+
+def get_pokemon(device):
+    '''
+        - 750 pokemon images
+        - 96 x 96 x 3
+        - float32 (0-1)
+    '''
+    imgs_folder = f'{__file__}/../../pokemon'
+    imgs_files = os.listdir(imgs_folder)
+    convert_tensor = transforms.ToTensor()
+
+    imgs = torch.zeros((750, 3, 96, 96))
+    for i in range(750):
+        with Image.open(f'{imgs_folder}/{imgs_files[i]}') as img:
+            imgs[i] = convert_tensor(img.convert('RGB'))
+
+    # plt.imshow(imgs[torch.randint(0, 750, (1,)).item()].permute(1, 2, 0))
+    # plt.savefig(f'{__file__}/../novel-vae/img/1.png')
+    return imgs.to(device)
