@@ -101,3 +101,22 @@ def get_pokemon(device):
     # plt.imshow(imgs[torch.randint(0, 750, (1,)).item()].permute(1, 2, 0))
     # plt.savefig(f'{__file__}/../novel-vae/img/1.png')
     return imgs.to(device)
+
+def get_pokemon_grayscale(device):
+    '''
+        - 750 pokemon images
+        - 96 x 96 x 3
+        - float32 (0-1)
+    '''
+    imgs_folder = f'{__file__}/../../pokemon'
+    imgs_files = os.listdir(imgs_folder)
+    convert_tensor = transforms.ToTensor()
+
+    imgs = torch.zeros((750, 1, 96, 96))
+    for i in range(750):
+        with Image.open(f'{imgs_folder}/{imgs_files[i]}') as img:
+            imgs[i] = convert_tensor(img.convert('L'))
+
+    plt.imshow(imgs[torch.randint(0, 750, (1,)).item()].squeeze(0))
+    plt.savefig(f'{__file__}/../novel-vae/img/1.png')
+    return imgs.to(device)

@@ -6,8 +6,9 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.distributions as distributions
+import matplotlib.pyplot as plt
 from model import VAE
-from helpers import get_pokemon
+from helpers import get_pokemon, get_pokemon_grayscale
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -41,12 +42,17 @@ def train(device, X_tr, epochs=100):
             loss = negative_elbo(p_x_logits, x, q_z, p_z)
             loss.backward()
             optimizer.step()
+        fig, axs = plt.subplots(1, 2, constrained_layout=True, figsize=(15, 3))
+        axs[0].imshow(x[0].permute((1,2,0)).cpu().detach().numpy())
+        axs[1].imshow(p_x_logits[0].permute((1,2,0)).cpu().detach().numpy())
+        fig.savefig(__file__ + '/../img/progress_reconstructed.png')
         loop.set_postfix(loss=f'{loss:7.5f}')
+
     return vae
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    imgs = get_pokemon(device)
+    imgs = get_pokemon_grayscale(device)
 
     vae = train(device, imgs)
 

@@ -27,7 +27,7 @@ def reconstruct(vae, imgs, img_path):
     fig, axs = plt.subplots(1, 2, constrained_layout=True, figsize=(15, 3))
     for j, img in enumerate(p_x_logits.permute((0, 2, 3, 1))):
         axs[j].imshow(img.cpu().detach().numpy())
-    plt.savefig(f'{img_path}/reconstructed.png')
+    fig.savefig(f'{img_path}/reconstructed.png')
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
