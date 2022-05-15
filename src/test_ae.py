@@ -41,3 +41,10 @@ def latent_space(model, X_ts, y_ts, img_path):
         handle.set_sizes((10.0,)) # Change size of colored dot in legend
     plt.title('AE latent vectors embedded into 2D (latent space)')
     plt.savefig(img_path + '/latent_space.png')
+
+def create_new(device, model, img_path, h):
+    z = torch.tensor([-2.0, -4.0], device=device).unsqueeze(0)
+    new = model.decoder(z)
+    plt.figure()
+    plt.imshow(new[0].view(h, h).cpu().detach().numpy())
+    plt.savefig(img_path + '/new.png')
