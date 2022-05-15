@@ -27,12 +27,12 @@ def negative_elbo(p_x_logits, x, q_z, p_z):
     # -elbo = -(-bce - kl) = bce + kl
     return bce + kl
 
-def train(device, X_tr, epochs=200):
+def train(device, X_tr, epochs=1000):
     batches, channels, h, w = X_tr.shape
     vae = VAE((h, w, channels)).to(device)
 
-    loader = DataLoader(X_tr, batch_size=50, shuffle=True)
-    optimizer = optim.Adam(vae.parameters(), lr=1e-4)
+    loader = DataLoader(X_tr, batch_size=15, shuffle=True)
+    optimizer = optim.Adam(vae.parameters(), lr=5e-5)
 
     loop = tqdm(range(epochs))
     for epoch in loop:
@@ -42,11 +42,11 @@ def train(device, X_tr, epochs=200):
             loss = negative_elbo(p_x_logits, x, q_z, p_z)
             loss.backward()
             optimizer.step()
-        if epoch % 10 == 0:
-            fig, axs = plt.subplots(1, 2, constrained_layout=True, figsize=(15, 3))
-            axs[0].imshow(x[0].permute((1,2,0)).cpu().detach().numpy())
-            axs[1].imshow(p_x_logits[0].permute((1,2,0)).cpu().detach().numpy())
-            fig.savefig(__file__ + f'/../img/progress_reconstructed_{epoch}.png')
+        # if epoch % 10 == 0:
+        #     fig, axs = plt.subplots(1, 2, constrained_layout=True, figsize=(15, 3))
+        #     axs[0].imshow(x[0].permute((1,2,0)).cpu().detach().numpy())
+        #     axs[1].imshow(p_x_logits[0].permute((1,2,0)).cpu().detach().numpy())
+        #     fig.savefig(__file__ + f'/../img/progress_reconstructed_{epoch}.png')
         loop.set_postfix(loss=f'{loss:7.5f}')
 
     return vae
