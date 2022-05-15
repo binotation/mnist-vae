@@ -9,7 +9,7 @@ class VAE(nn.Module):
     def __init__(self, data_dim):
         super(VAE, self).__init__()
         self._latent_size = 128
-        self._convs_out_dim = get_convs_out_dim(data_dim, (6, 6, 16, 16), (5, 2, 5, 2), (1, 2, 1, 2), (0,)*4)
+        self._convs_out_dim = (4, 4, 16)
         self.inference_network = InferenceNetwork(data_dim, self._latent_size, np.prod(self._convs_out_dim))
         self.generative_network = GenerativeNetwork(data_dim, self._latent_size, self._convs_out_dim)
 
@@ -105,5 +105,5 @@ class GenerativeNetwork(nn.Module):
         '''
         out = self.generative1(z_sample)
         h, w, channels = self._convs_out_dim
-        p_x_logits = self.generative2(out.view(-1, channels, h, w))
-        return p_x_logits
+        out = self.generative2(out.view(-1, channels, h, w))
+        return out
