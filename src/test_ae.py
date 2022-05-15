@@ -22,7 +22,7 @@ def reconstruct(model, X_ts, img_path):
     plt.savefig(img_path + '/reconstructed.png')
 
 def latent_space(model, X_ts, y_ts, img_path):
-    '''Create a plot of the latent vectors projected into 2D'''
+    '''Create a plot of the latent vectors embedded into 2D'''
     latent_vecs = model.encoder(X_ts)
 
     # Project latent vector into 2D
@@ -39,5 +39,5 @@ def latent_space(model, X_ts, y_ts, img_path):
     lgd = fig.legend(plots, [str(i) for i in range(10)], loc='right')
     for handle in lgd.legendHandles:
         handle.set_sizes((10.0,)) # Change size of colored dot in legend
-    plt.title('AE latent vectors projected into 2D (latent space)')
+    plt.title('AE latent vectors embedded into 2D (latent space)')
     plt.savefig(img_path + '/latent_space.png')
