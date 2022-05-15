@@ -3,7 +3,7 @@ import sys
 sys.path.append(__file__ + '/../..')
 
 from helpers import create_dir, get_mnist, get_cifar10
-from test_ae import reconstruct, latent_space, create_new
+from test_ae import reconstruct, latent_space, create_new, choose_new
 from model import LinearAE
 import torch
 
@@ -19,8 +19,9 @@ def main():
     h = X_ts.shape[2]
     channels = X_ts.shape[1]
     reconstruct(linear_ae, X_ts, img_path)
-    latent_space(linear_ae, X_ts, y_ts, img_path)
+    pca = latent_space(linear_ae, X_ts, y_ts, img_path)
     create_new(device, linear_ae, img_path, h, channels)
+    choose_new(device, pca, linear_ae, h, channels, img_path, (-5, -8))
 
 if __name__ == '__main__':
     main()

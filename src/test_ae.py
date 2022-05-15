@@ -41,6 +41,7 @@ def latent_space(model, X_ts, y_ts, img_path):
         handle.set_sizes((10.0,)) # Change size of colored dot in legend
     plt.title('AE latent vectors embedded into 2D (latent space)')
     fig.savefig(img_path + '/latent_space.png')
+    return pca
 
 def create_new(device, model, img_path, h, channels):
     z = torch.rand((5, 64), device=device) * 10 - 5
@@ -50,3 +51,13 @@ def create_new(device, model, img_path, h, channels):
         axs[i].imshow(new[i].view(h, h, channels).cpu().detach().numpy())
     fig.suptitle('Uniform random samples of latent space on (-5, 5)')
     fig.savefig(img_path + '/new.png')
+
+def choose_new(device, pca: PCA, model, h, channels, img_path, point):
+    '''pca comes from latent_space'''
+    z_reduced = np.array(point)
+    z = torch.from_numpy(pca.inverse_transform(z_reduced)).unsqueeze(0).float().to(device)
+
+    x = model.decoder(z)
+    fig = plt.figure()
+    plt.imshow(x.view(h, h, channels).cpu().detach().numpy())
+    fig.savefig(img_path + '/choose.png')
