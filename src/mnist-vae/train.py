@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 def negative_elbo(out, x, q_z, p_z):
-    '''Negative elbo loss function. 
+    '''Negative elbo loss function.
     elbo = log likelihood of x under p_x - Kullback Leibler divergence
     Since p_x is Bernoulli, the first term is equivalent to the negative binary cross entropy loss.
     '''
